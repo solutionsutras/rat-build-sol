@@ -1,0 +1,73 @@
+[{
+  "_id":"627982c7a8e593c056b99b71",
+  "categName": "Stones",
+  "icon": "https://public.solutionsutras.com/rat/cat/no-icon.png",
+  "image": "https://public.solutionsutras.com/rat/cat/stones.png",
+  "__v": 0
+},{
+  "_id": "6279855ead237b5d4163e0fd",
+  "categName": "Sand",
+  "icon": "",
+  "image": "https://public.solutionsutras.com/rat/cat/sands.png",
+  "__v": 0
+},{
+  "_id": "62798603ad237b5d4163e108",
+  "categName": "Cement",
+  "icon": "",
+  "image": "https://public.solutionsutras.com/rat/cat/cement.png",
+  "__v": 0
+},{
+  "_id": "62798623ad237b5d4163e10a",
+  "categName": "Steel",
+  "icon": "",
+  "image": "https://public.solutionsutras.com/rat/cat/steels.png",
+  "__v": 0
+},{
+  "_id": "62798654ad237b5d4163e10c",
+  "categName": "Bricks",
+  "icon": "",
+  "image": "https://public.solutionsutras.com/rat/cat/bricks.png",
+  "__v": 0
+},{
+  "_id": "62798676ad237b5d4163e10e",
+  "categName": "Tiles",
+  "icon": "",
+  "image": "https://public.solutionsutras.com/rat/cat/tiles.png",
+  "__v": 0
+},{
+  "_id": "6279869ead237b5d4163e110",
+  "categName": "Sanitary Ware",
+  "icon": "",
+  "image": "https://public.solutionsutras.com/rat/cat/sanitary-ware.png",
+  "__v": 0
+},{
+  "_id": "627986c7ad237b5d4163e114",
+  "categName": "Glass",
+  "icon": "",
+  "image": "https://public.solutionsutras.com/rat/cat/glass.png",
+  "__v": 0
+},{
+  "_id": "627986eaad237b5d4163e116",
+  "categName": "Paints",
+  "icon": "",
+  "image": "https://public.solutionsutras.com/rat/cat/paints.png",
+  "__v": 0
+},{
+  "_id": "62798705ad237b5d4163e118",
+  "categName": "Concrete",
+  "icon": "",
+  "image": "https://public.solutionsutras.com/rat/cat/concrete.png",
+  "__v": 0
+},{
+  "_id": "6279872fad237b5d4163e11a",
+  "categName": "Plastic Fittings",
+  "icon": "",
+  "image": "https://public.solutionsutras.com/rat/cat/plastic-fittings.png",
+  "__v": 0
+},{
+  "_id": "6279874cad237b5d4163e11c",
+  "categName": "Wood",
+  "icon": "",
+  "image": "https://public.solutionsutras.com/rat/cat/wood.png",
+  "__v": 0
+}]
