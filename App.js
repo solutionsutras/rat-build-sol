@@ -30,7 +30,7 @@ export default function App() {
 
             <Header />
             <MainNavigator />
-            <Toast ref={(ref) => Toast.setRef(ref)} />
+            <Toast ref={(ref) => React.useRef(ref)} />
 
           </NavigationContainer>
         </NativeBaseProvider>

@@ -15,7 +15,7 @@ const ItemsList = (props) =>{
             }}
         >
             <View style={{width:width/2, backgroundColor:'transparent',}}>
-                <ItemsCard  {...item} />
+                <ItemsCard  {...item} key={item._id}/>
             </View>
 
         </TouchableOpacity>

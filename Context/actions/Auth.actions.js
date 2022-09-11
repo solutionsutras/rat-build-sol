@@ -7,32 +7,64 @@ export const SET_CURRENT_USER = "SET_CURRENT_USER";
 
 export const loginUser = (user, dispatch) => {
     fetch(`${baseUrl}users/login`, {
-        method: "POST",
-        body: JSON.stringify(user),
-        headers:{
-            Accept: "application/json",
-            "Content-Type": "application/json",
-        },
+      method: 'POST',
+      body: JSON.stringify(user),
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
     })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data) {
+          const token = data.token;
+          AsyncStorage.setItem('jwt', token);
+          const decoded = jwt_decode(token);
+          dispatch(setCurrentUser(decoded, user)); // To do
+        } else {
+          logoutUser(dispatch);
+        }
+      })
+      .catch((error) => {
+        Toast.show({
+          topOffset: 60,
+          type: 'error',
+          text1: 'Please provide correct credentials',
+          text2: ' ',
+        });
+        logoutUser(dispatch);
+      });
+};
+
+export const otpLoginUser = (user, dispatch) => {
+  fetch(`${baseUrl}users/otplogin`, {
+    method: 'POST',
+    body: JSON.stringify(user),
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+  })
     .then((res) => res.json())
     .then((data) => {
-        if(data){
-            const token = data.token;
-            AsyncStorage.setItem("jwt", token)
-            const decoded = jwt_decode(token)
-            dispatch(setCurrentUser(decoded, user)) // To do
-        }else {
-            logoutUser(dispatch)
-        }
+      if (data) {
+        const token = data.token;
+        AsyncStorage.setItem('jwt', token);
+        const decoded = jwt_decode(token);
+        dispatch(setCurrentUser(decoded, user)); // To do
+      } else {
+        logoutUser(dispatch);
+      }
     })
     .catch((error) => {
-        Toast.show({
-            topOffset:60,
-            type: "error",
-            text1: "Please provide correct credentials",
-            text2: " "
-        });
-        logoutUser(dispatch)
+      Toast.show({
+        topOffset: 60,
+        type: 'error',
+        text1: 'Please provide correct credentials',
+        text2: ' ',
+      });
+      logoutUser(dispatch);
     });
 };
 

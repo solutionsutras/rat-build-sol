@@ -1,4 +1,4 @@
-import React, { useState, } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableHighlight, TouchableOpacity, Dimensions, Button, Modal } from 'react-native';
 import { Icon, Heading, VStack, Input, Box, Divider } from 'native-base';
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
@@ -10,6 +10,14 @@ var { width } = Dimensions.get("window")
 
 const ListItem = (props) => {
     const [modalVisible, setModalVisible] = useState(false);
+
+
+    var unitItems = "";
+    {
+        props.rates.map((r) => {
+            return (unitItems += r.cost + "/" + r.unit.unitName.split("(")[0].trim() + ", ")
+        })
+    }
 
     return (
         <View>
@@ -37,7 +45,7 @@ const ListItem = (props) => {
                             medium
                             secondary
                             onPress={() => [
-                                props.navigation.navigate("ItemsForm", { item: props }),
+                                props.navigation.navigate("EditItem", { item: props }),
                                 setModalVisible(false)
                             ]}
                         >
@@ -72,9 +80,11 @@ const ListItem = (props) => {
                     style={styles.image}
                 />
                 <Text style={styles.item}>{props.itemName}</Text>
-                <Text style={styles.item} numberOfLines={1} ellipsizeMode="tail">{props.itemDesc}</Text>
-                <Text style={styles.item} numberOfLines={1} ellipsizeMode="tail">{props.itemCategory.categName}</Text>
-                <Text style={styles.item}>{controls.currency}{props.price}/{props.unit}</Text>
+                <Text style={styles.item} numberOfLines={3} ellipsizeMode="tail">{props.itemDesc}</Text>
+                <Text style={styles.item}>{props.quality.qualityName}</Text>
+                {/* <Text style={styles.item} numberOfLines={1} ellipsizeMode="tail">{props.itemCategory.categName}</Text> */}
+                <Text style={styles.item} numberOfLines={3} >{unitItems}</Text>
+
             </TouchableOpacity>
         </View>
     )
@@ -86,7 +96,7 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         padding: 5,
-        width: width,
+        width: width + 100,
     },
     image: {
         borderRadius: 15,
@@ -123,5 +133,5 @@ const styles = StyleSheet.create({
     textStyle: {
         color: 'white',
         fontWeight: 'bold',
-    }
+    },
 })

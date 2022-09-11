@@ -28,9 +28,10 @@ export default Input;
 const styles = StyleSheet.create({
     input: {
         width: '90%',
-        height: 48,
+        height: 42,
         backgroundColor: 'white',
-        margin: 10,
+        marginTop:0,
+        marginBottom:5,
         paddingLeft:15,
         borderRadius: 5,
         borderWidth: 1,

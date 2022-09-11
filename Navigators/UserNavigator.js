@@ -3,37 +3,70 @@ import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../Screens/User/Login';
 import Register from '../Screens/User/Register';
 import UserProfile from '../Screens/User/UserProfile';
+import { colors } from '../assets/global/globalStyles';
+import { StyleSheet, Button } from 'react-native';
+import OtpLogin from '../Screens/User/OtpLogin';
 
 const Stack = createStackNavigator();
 
 function UserStack() {
-    return(
-        <Stack.Navigator>
+    return (
+        <Stack.Navigator
+            screenOptions={{
+                headerStyle: {
+                    backgroundColor: colors.buttons,
+                    height:40,
+                },
+                headerLeft:false,
+                headerTintColor:'white',
+                headerTitleStyle: styles.headerText,
+            }}
+            
+        >
             <Stack.Screen
                 name="Login"
                 component={Login}
+                initialParams={{fromNav:""}}
                 options={{
-                    headerShown:false,
+                    title:"Login using Password",
                 }}
             />
             <Stack.Screen
                 name="Register"
                 component={Register}
+                initialParams={{fromNav:""}}
                 options={{
-                    headerShown:false,
+                    title:"New User Registration",
                 }}
             />
             <Stack.Screen
                 name="User Profile"
                 component={UserProfile}
+                initialParams={{fromNav:""}}
                 options={{
-                    headerShown:false,
+                    title:"My Profile",
+                }}
+            />
+            <Stack.Screen
+                name="OtpLogin"
+                component={OtpLogin}
+                initialParams={{fromNav:""}}
+                options={{
+                    title:"Login Using OTP",
                 }}
             />
         </Stack.Navigator>
     )
 }
 
-export default function UserNavigator(){
-    return <UserStack/>
+export default function UserNavigator() {
+    return <UserStack />
 }
+
+
+const styles = StyleSheet.create({
+    headerText:{
+        position:'absolute',
+        top:-30,
+    },
+})

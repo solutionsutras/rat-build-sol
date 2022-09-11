@@ -10,24 +10,24 @@ import CheckoutNavigator from './CheckoutNavigator';
 const Stack = createStackNavigator();
 
 function CartStack() {
-    return(
-        <Stack.Navigator>
-            <Stack.Screen
-                name="Cart Screen"
-                component={Cart}
-                options={{
-                    headerShown:false,
-                }}
-            />
-            <Stack.Screen
-                name="Checkout"
-                component={CheckoutNavigator}
-                options={{
-                    title:'Checkout'
-                }}
-            />
-        </Stack.Navigator>
-    )
+    return (
+      <Stack.Navigator>
+        <Stack.Screen
+          name="Cart Screen"
+          component={Cart}
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="Checkout"
+          component={CheckoutNavigator}
+          options={{
+            headerShown: false,
+          }}
+        />
+      </Stack.Navigator>
+    );
 }
 
 export default function CartNavigator(){

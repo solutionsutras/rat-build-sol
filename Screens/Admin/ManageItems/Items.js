@@ -10,7 +10,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import ListItem from './ListItem';
 import { colors } from '../../../assets/global/globalStyles';
+import { controls } from '../../../assets/global/controls';
 import EasyButton from '../../../Shared/StyledComponents/EasyButton';
+// import AdminTopTabNavigator from '../../../Navigators/AdminNavigator/AdminTopTabNavigator';
 var { height, width } = Dimensions.get("window");
 
 const ListHeader = () => {
@@ -19,8 +21,9 @@ const ListHeader = () => {
             <View style={styles.headerItem}></View>
             <View style={styles.headerItem}><Text style={styles.listHeaderText}>Name</Text></View>
             <View style={styles.headerItem}><Text style={styles.listHeaderText}>Desc.</Text></View>
-            <View style={styles.headerItem}><Text style={styles.listHeaderText}>Category</Text></View>
-            <View style={styles.headerItem}><Text style={styles.listHeaderText}>Price/Unit</Text></View>
+            <View style={styles.headerItem}><Text style={styles.listHeaderText}>Quality</Text></View>
+            {/* <View style={styles.headerItem}><Text style={styles.listHeaderText}>Category</Text></View> */}
+            <View style={styles.headerItem}><Text style={styles.listHeaderText}>Price/Unit (in {controls.currency})</Text></View>
         </View>
     )
 }
@@ -132,16 +135,17 @@ const Items = (props) => {
                                 delete={deleteItem}
                             />
                         )}
+                        key={(item) => item.id}
                         keyExtractor={(item) => item.id}
                     />
                 )}
 
             <View style={styles.buttonContainer}>
 
-                <EasyButton secondary large
-                    onPress={() => props.navigation.navigate("ManageItems")}
+                <EasyButton secondary extralarge
+                    onPress={() => props.navigation.navigate("AddItem")}
                 >
-                    <Icon mr="0" size="5" color="white" as={<MaterialIcons name="add-box" />} />
+                    <Icon mr="2" size="5" color="white" as={<MaterialIcons name="add-box" />} />
                     <Text style={styles.buttonText}>Add New Item</Text>
                 </EasyButton>
 
@@ -160,6 +164,7 @@ const Items = (props) => {
                 </EasyButton> */}
 
             </View>
+            {/* <AdminTopTabNavigator/> */}
         </View>
 
 

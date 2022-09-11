@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "rat-build-sol",
-    "slug": "rat-build-sol",
+    "name": "bricksnstones",
+    "slug": "bricksnstones",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -20,15 +20,23 @@
       "supportsTablet": true
     },
     "android": {
-      "package":"com.ratbuildsol.ratbuildsol",
+      "package":"com.art.bricksnstones",
       "versionCode":1,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#FFFFFF"
       }
     },
     "web": {
       "favicon": "./assets/icon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos."
+        }
+      ]
+    ]
   }
 }

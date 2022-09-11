@@ -16,14 +16,14 @@ export default FormContainer;
 
 const styles = StyleSheet.create({
     container: {
-        marginTop: 10,
+        marginTop: 0,
         marginBottom: 400,
         width: width,
         justifyContent: 'center',
         alignItems: 'center',
     },
     title:{
-        fontSize:24,
+        fontSize:16,
         marginBottom:10,
     }
 })
