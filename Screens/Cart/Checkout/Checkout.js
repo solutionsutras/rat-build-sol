@@ -32,11 +32,13 @@ const Checkout = (props) => {
   const [user, setUser] = useState();
   const [userProfile, setUserProfile] = useState();
   const [custName, setCustName] = useState();
-  const [orderStatus, setOrderStatus] = useState('');
+  const [orderStatus, setOrderStatus] = useState();
+  const [logistics, setLogistics] = useState([]);
+  const [transactions, setTransactions] = useState([]);
 
   var userData = [];
   // console.log('=========     start     =========');
-  // console.log('props: ', props);
+  console.log('props: ', props);
   useFocusEffect(
     useCallback(() => {
       setOrderItems(props.cartItems);
@@ -45,7 +47,7 @@ const Checkout = (props) => {
       axios
         .get(`${baseUrl}orderstatus/getbytext/pending`)
         .then((res) => {
-          setOrderStatus(res.data[0].statusCode);
+          setOrderStatus(res.data);
         })
         .catch((error) => alert('Error in getting order status code'));
 
@@ -96,21 +98,38 @@ const Checkout = (props) => {
   );
 
   const proceedToPayment = () => {
-    let order = {
+    let shippingAddress = {
+      address1: address,
+      address2: address2,
       city,
-      country,
-      custName,
-      dateOrdered: Date.now(),
-      orderItems,
-      phone,
-      shippingAddress1: address,
-      shippingAddress2: address2,
       state,
       pin,
-      // status: '01',
-      status: orderStatus,
-      user: user,
+      country,
+      phone,
     };
+    let billingAddress = {
+      address1: address,
+      address2: address2,
+      city,
+      state,
+      pin,
+      country,
+      phone,
+    };
+    let order = {
+      orderItems,
+      custName: custName,
+      billingAddress: billingAddress,
+      shippingAddress: shippingAddress,
+      status:orderStatus._id,
+      transactions,
+      // logistics,
+      user: user,
+      dateOrdered: Date.now(),
+      lastUpdated: Date.now(),
+      lastUpdatedByUser: user,
+    };
+    console.log(order);
     props.navigation.navigate('OrderReview', { order: order });
   };
 
@@ -120,16 +139,21 @@ const Checkout = (props) => {
       extraHeight={200}
       enableOnAndroid={true}
     >
-      <FormContainer
-      title={'Enter Shipping/Billing Address'}
-      >
+      <FormContainer title={'Enter Shipping/Billing Address'}>
         <View>{error ? <Error message={error} /> : null}</View>
+        <View style={styles.titleView}>
+          <Text>Name:</Text>
+        </View>
         <Input
           placeholder={'Name'}
           name={'custName'}
           value={custName}
           onChangeText={(text) => setCustName(text)}
         />
+
+        <View style={styles.titleView}>
+          <Text>Phone No:</Text>
+        </View>
         <Input
           placeholder={'Phone'}
           name={'Phone'}
@@ -137,43 +161,78 @@ const Checkout = (props) => {
           keyboardType={'numeric'}
           onChangeText={(text) => setPhone(text)}
         />
+
+        <View style={styles.titleView}>
+          <Text>Address Line 1:</Text>
+        </View>
         <Input
           placeholder={'Shipping Address 1'}
           name={'ShippingAddress1'}
           value={address}
           onChangeText={(text) => setAddress(text)}
         />
+
+        <View style={styles.titleView}>
+          <Text>Address Line 2:</Text>
+        </View>
         <Input
           placeholder={'Shipping Address 2'}
           name={'ShippingAddress2'}
           value={address2}
           onChangeText={(text) => setAddress2(text)}
         />
-        <Input
-          placeholder={'City'}
-          name={'City'}
-          value={city}
-          onChangeText={(text) => setCity(text)}
-        />
-        <Input
-          placeholder={'PIN Code'}
-          name={'PIN'}
-          value={pin}
-          keyboardType={'numeric'}
-          onChangeText={(text) => setPin(text)}
-        />
-        <Input
-          placeholder={'State'}
-          name={'State'}
-          value={state}
-          onChangeText={(text) => setState(text)}
-        />
-        <Input
-          placeholder={'Country'}
-          name={'Country'}
-          value={country}
-          onChangeText={(text) => setCountry(text)}
-        />
+
+        <View style={styles.inLineView}>
+          <View style={{ width: '50%' }}>
+            <View style={styles.titleView}>
+              <Text>City:</Text>
+            </View>
+            <Input
+              placeholder={'City'}
+              name={'City'}
+              value={city}
+              onChangeText={(text) => setCity(text)}
+            />
+          </View>
+
+          <View style={{ width: '50%' }}>
+            <View style={styles.titleView}>
+              <Text>PIN:</Text>
+            </View>
+            <Input
+              placeholder={'PIN Code'}
+              name={'PIN'}
+              value={pin}
+              keyboardType={'numeric'}
+              onChangeText={(text) => setPin(text)}
+            />
+          </View>
+        </View>
+        <View style={styles.inLineView}>
+          <View style={{ width: '50%' }}>
+            <View style={styles.titleView}>
+              <Text>State:</Text>
+            </View>
+            <Input
+              placeholder={'State'}
+              name={'State'}
+              value={state}
+              onChangeText={(text) => setState(text)}
+            />
+          </View>
+
+          <View style={{ width: '50%' }}>
+            <View style={styles.titleView}>
+              <Text>Country:</Text>
+            </View>
+            <Input
+              placeholder={'Country'}
+              name={'Country'}
+              value={country}
+              onChangeText={(text) => setCountry(text)}
+            />
+          </View>
+        </View>
         {/* <Select
                     placeholder="Select your country"
                     selectedValue={country}
@@ -185,7 +244,7 @@ const Checkout = (props) => {
                         return <Select.Item label={c.name} value={c.name} key={c.code} />
                     })}
                 </Select> */}
-        <View style={{ width: '80%', alignItems: 'center' }}>
+        <View style={{ width: '80%', alignItems: 'center', marginTop: 20 }}>
           <EasyButton large primary onPress={() => proceedToPayment()}>
             <Text style={{ color: 'white' }}>Next</Text>
           </EasyButton>
@@ -213,5 +272,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 2,
     borderColor: colors.buttons,
+  },
+  titleView: {
+    width: '90%',
+    marginLeft: 5,
+    marginTop: 5,
+  },
+  inLineView: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    width: '90%',
   },
 });

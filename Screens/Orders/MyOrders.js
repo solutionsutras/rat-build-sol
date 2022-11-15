@@ -9,15 +9,16 @@ import baseUrl from '../../assets/common/baseUrl';
 
 import AuthGlobal from '../../Context/store/AuthGlobal';
 import { logoutUser } from '../../Context/actions/Auth.actions';
-import OrderCard from '../../Shared/OrderCard';
+import OrderCard from './OrderCard';
 // import { useEffect } from 'react/cjs/react.development';
 
 const MyOrders = (props) => {
   const context = useContext(AuthGlobal);
   const [userProfile, setUserProfile] = useState();
   const [orders, setOrders] = useState([]);
+  const fromNav = 'MyOrders'
 
-  // console.log(context.stateUser.user)
+  // console.log('props: ', props);
 
   useFocusEffect(
     useCallback(() => {
@@ -25,28 +26,31 @@ const MyOrders = (props) => {
         context.stateUser.isAuthenticated === false ||
         context.stateUser.isAuthenticated === null
       ) {
-        props.navigation.navigate('Login');
-      }
-      AsyncStorage.getItem('jwt')
-        .then((res) => {
-          axios
-            .get(`${baseUrl}users/${context.stateUser.user.userId}`, {
+        // props.navigation.navigate('Login');
+        props.navigation.navigate('User', {params: { fromNav: fromNav }});
+      } else {
+        AsyncStorage.getItem('jwt')
+          .then((res) => {
+            const config = {
               headers: { Authorization: `Bearer ${res}` },
-            })
-            .then((user) => setUserProfile(user.data));
-        })
-        .catch((error) => console.log(error));
+            };
+            axios
+              .get(`${baseUrl}users/${context.stateUser.user.userId}`, config)
+              .then((user) => setUserProfile(user.data));
+          })
+          .catch((error) => console.log(error));
 
-      axios
-        .get(`${baseUrl}orders`)
-        .then((res) => {
-          const data = res.data;
-          const myOrders = data.filter(
-            (ord) => ord.user._id === context.stateUser.user.userId
-          );
-          setOrders(myOrders);
-        })
-        .catch((error) => console.log(error));
+        axios
+          .get(`${baseUrl}orders`)
+          .then((res) => {
+            const data = res.data;
+            const myOrders = data.filter(
+              (ord) => ord.user._id === context.stateUser.user.userId
+            );
+            setOrders(myOrders);
+          })
+          .catch((error) => console.log(error));
+      }
 
       return () => {
         setUserProfile();

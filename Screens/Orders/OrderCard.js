@@ -15,71 +15,40 @@ import {
   CheckIcon,
 } from '@expo/vector-icons';
 
-import EasyButton from './StyledComponents/EasyButton';
+import EasyButton from '../../Shared/StyledComponents/EasyButton';
 import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import baseUrl from '../assets/common/baseUrl';
-import { controls } from '../assets/global/controls';
-import { colors } from '../assets/global/globalStyles';
+import baseUrl from '../../assets/common/baseUrl';
+import { controls } from '../../assets/global/controls';
+import { colors } from '../../assets/global/globalStyles';
 import axios from 'axios';
 import { Alert } from 'react-native';
 
 var { width } = Dimensions.get('window');
 
-const codes = [
-  { name: 'pending', code: '1' },
-  { name: 'being processed', code: '2' },
-  { name: 'shipped', code: '3' },
-  { name: 'delivered', code: '4' },
-  { name: 'settled', code: '5' },
-];
-
 const OrderCard = (props) => {
   // console.log('=====================================================');
-  // console.log("props: ", props);
-  const [orderStatus, setOrderStatus] = useState();
-  const [statusText, setStatusText] = useState();
+  // console.log('props.status.statusCode: ', props.status.statusCode);
+  // console.log('props.status.statusText: ', props.status.statusText);
+  const [statusCode, setStatusCode] = useState(props.status.statusCode);
+  const [statusText, setStatusText] = useState(props.status.statusText);
+  const [colorCode, setColorCode] = useState(props.status.colorCode);
   const [statusChange, setStatusChange] = useState();
   const [token, setToken] = useState();
-  const [cardColor, setCardColor] = useState();
+  const [dateOrdered, setDateOrdered] = useState('');
 
   useEffect(() => {
-    {
-      props.editMode
-        ? AsyncStorage.getItem('jwt')
-            .then((res) => setToken(res))
-            .catch((error) => console.log(error))
-        : null;
-    }
+    AsyncStorage.getItem('jwt')
+      .then((res) => setToken(res))
+      .catch((error) => console.log(error));
 
-    if (props.status == '01') {
-      setStatusText('pending');
-      setCardColor('#999999');
-    } else if (props.status == '10') {
-      setStatusText('accepted');
-      setCardColor('#FFA500');
-    } else if (props.status == '20') {
-      setStatusText('being processed');
-      setCardColor('#99DD00');
-    } else if (props.status == '30') {
-      setStatusText('shipped');
-      setCardColor('#33BB00');
-    } else if (props.status == '40') {
-      setStatusText('delivered');
-      setCardColor('#008800');
-    } else if (props.status == '50') {
-      setStatusText('settled');
-      setCardColor('#005500');
-    } else if (props.status == '99') {
-      setStatusText('canceled');
-      setCardColor('#EE0000');
-    }
+    setDateOrdered(
+      new Date(props.dateOrdered).toLocaleString(undefined, {
+        timeZone: 'Asia/Kolkata',
+      })
+    );
 
-    return () => {
-      setOrderStatus();
-      setStatusText();
-      setCardColor();
-    };
+    return () => {};
   }, []);
 
   const cancelOrder = () => {
@@ -87,7 +56,7 @@ const OrderCard = (props) => {
       console.log('cancelOrder');
     } else if (statusText === 'being processed') {
       Alert.alert(
-        'As the order is being processed 60% of the advance will be refunded'
+        'As the order is being processed only 60% of the advance paid will be refunded'
       );
     } else {
       Alert.alert(
@@ -103,15 +72,8 @@ const OrderCard = (props) => {
 
     const order = {
       id: props.id,
-      city: props.city,
-      country: props.country,
       dateOrdered: props.dateOrdered,
       orderItems: props.orderItems,
-      phone: props.phone,
-      shippingAddress1: props.shippingAddress1,
-      shippingAddress2: props.shippingAddress2,
-      state: props.state,
-      pin: props.pin,
       status: statusChange,
       totalPrice: props.totalPrice,
       user: props.user,
@@ -155,7 +117,7 @@ const OrderCard = (props) => {
           <Text
             style={[
               styles.statusTitle,
-              { color: cardColor, fontWeight: 'bold' },
+              { color: colorCode, fontWeight: 'bold' },
             ]}
           >
             {statusText}
@@ -164,19 +126,26 @@ const OrderCard = (props) => {
       </View>
       <View style={{ marginTop: 10 }}>
         <Text style={styles.priceText}>
-          Address: {props.shippingAddress1}
-          {props.shippingAddress2 ? ', ' + props.shippingAddress2 : null}
+          Shipping Address: {props.shippingAddress.address1}
+          {props.shippingAddress.address2
+            ? ', ' + props.shippingAddress.address2
+            : null}
         </Text>
-        <Text style={styles.priceText}>City: {props.city}</Text>
         <Text style={styles.priceText}>
-          State: {props.state}, ({props.country})
+          Dist: {props.shippingAddress.city}, State:{' '}
+          {props.shippingAddress.state}, Country:{' '}
+          {props.shippingAddress.country}
         </Text>
         <Text style={styles.priceText}>
           Delivery Point: {props.toLocationCode}
         </Text>
         <Text style={styles.priceText}>
-          Date Ordered: {props.dateOrdered.split('T')[0]}, Time:{' '}
-          {props.dateOrdered.split('T')[1].split('.')[1]}
+          Date Ordered:
+          {/* {props.dateOrdered.split('T')[0]}, Time:{' '}
+          {props.dateOrdered.split('T')[1].split('.')[1]} */}
+          {/* {dateOrdered} */}
+          {dateOrdered.split(' ')[2]}-{dateOrdered.split(' ')[1]}-
+          {dateOrdered.split(' ')[4]}, Time: {dateOrdered.split(' ')[3]}
         </Text>
         <View style={styles.priceContainer}>
           <Text style={styles.grey1}>Total Order Value: </Text>
@@ -224,7 +193,6 @@ const OrderCard = (props) => {
           </View>
         </View>
         {/* ) : null} */}
-
       </View>
     </View>
   );

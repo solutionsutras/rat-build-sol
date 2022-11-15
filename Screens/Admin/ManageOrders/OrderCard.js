@@ -26,106 +26,25 @@ import EasyButton from '../../../Shared/StyledComponents/EasyButton';
 
 var { width } = Dimensions.get('window');
 
-const codes = [
-  { name: 'pending', code: '3' },
-  { name: 'shipped', code: '2' },
-  { name: 'delivered', code: '1' },
-];
-
 const OrderCard = (props) => {
-  // console.log(props);
-  const [orderStatusColor, setOrderStatusColor] = useState();
-  const [statusText, setStatusText] = useState();
+  // console.log('props: ', props);
+  const [statusCode, setStatusCode] = useState(props.status.statusCode);
+  const [statusText, setStatusText] = useState(props.status.statusText);
+  const [colorCode, setColorCode] = useState(props.status.colorCode);
   const [statusChange, setStatusChange] = useState();
   const [token, setToken] = useState();
-  const [cardColor, setCardColor] = useState();
+  const [dateOrdered, setDateOrdered] = useState('');
 
   useEffect(() => {
-    {
-      props.editMode
-        ? AsyncStorage.getItem('jwt')
-            .then((res) => setToken(res))
-            .catch((error) => console.log(error))
-        : null;
-    }
-
-    // console.log(props.status);
-    if (props.status == '01') {
-      setStatusText('pending');
-      setCardColor('#999999');
-    } else if (props.status == '10') {
-      setStatusText('accepted');
-      setCardColor('#FFA500');
-    } else if (props.status == '20') {
-      setStatusText('being processed');
-      setCardColor('#99DD00');
-    } else if (props.status == '30') {
-      setStatusText('shipped');
-      setCardColor('#33BB00');
-    } else if (props.status == '40') {
-      setStatusText('delivered');
-      setCardColor('#008800');
-    } else if (props.status == '50') {
-      setStatusText('settled');
-      setCardColor('#005500');
-    } else if (props.status == '99') {
-      setStatusText('canceled');
-      setCardColor('#EE0000');
-    }
-
-    return () => {
-      setOrderStatusColor();
-      setStatusText();
-      setCardColor();
-    };
+    setDateOrdered(
+      new Date(props.dateOrdered).toLocaleString(undefined, {
+        timeZone: 'Asia/Kolkata',
+      })
+    );
+    return () => {};
   }, []);
 
-  const updateOrderStatus = () => {
-    const config = {
-      headers: { Authorization: `Bearer ${token}` },
-    };
-
-    const order = {
-      id: props.id,
-      city: props.city,
-      country: props.country,
-      dateOrdered: props.dateOrdered,
-      orderItems: props.orderItems,
-      phone: props.phone,
-      shippingAddress1: props.shippingAddress1,
-      shippingAddress2: props.shippingAddress2,
-      state: props.state,
-      pin: props.pin,
-      status: statusChange,
-      totalPrice: props.totalPrice,
-      user: props.user,
-    };
-
-    axios
-      .put(`${baseUrl}orders/${props.id}`, order, config)
-      .then((res) => {
-        if (res.status == 200 || res.status == 201) {
-          Toast.show({
-            topOffset: 60,
-            type: 'success',
-            text1: 'Order status updated successfuly',
-            text2: ' ',
-          });
-          setTimeout(() => {
-            props.navigation.navigate('ViewOrders');
-          }, 500);
-        }
-      })
-      .catch((error) => {
-        Toast.show({
-          topOffset: 60,
-          type: 'error',
-          text1: 'Something went wrong, Please try again...',
-          text2: 'Error:' + error,
-        });
-      });
-  };
-
+  
   return (
     <TouchableOpacity
       style={[
@@ -135,6 +54,9 @@ const OrderCard = (props) => {
             props.index % 2 == 0 ? colors.cardBackground : colors.grey5,
         },
       ]}
+      onPress={() =>
+        props.navigation.navigate('ManageOrders', { order: props })
+      }
     >
       <View>
         <View style={styles.idContainer}>
@@ -144,52 +66,86 @@ const OrderCard = (props) => {
         <View style={{ alignItems: 'center', flexDirection: 'row' }}>
           <Text style={{ fontWeight: 'bold' }}>Status:</Text>
           <View style={styles.orderStatusLabel}>
-            <Text
-              style={[
-                styles.statusTitle,
-                { color: cardColor, fontWeight: 'bold' },
-              ]}
-            >
+            <Text style={[styles.statusTitle, { color: colorCode }]}>
               {statusText}
             </Text>
           </View>
         </View>
 
         <View style={styles.detailsContainer}>
-          <Text>Customer Name: {props.user.name}</Text>
-
-          <Text>Billing Address: </Text>
-          {props.shippingAddress2 ? (
-            <Text>
-              Billing Address: {props.shippingAddress1},{' '}
-              {props.shippingAddress2}
-            </Text>
-          ) : (
-            <Text>Billing Address: {props.shippingAddress1}</Text>
-          )}
-
-          <Text>City: {props.city}</Text>
-          <Text>
-            State: {props.state}, {props.country}
-          </Text>
-          <Text>Date Ordered: {props.dateOrdered.split('T')[0]}</Text>
-          <View style={styles.priceContainer}>
-            <Text style={styles.price}>Order Value: </Text>
-            <Text style={styles.price}>
-              {controls.currency}
-              {props.totalPrice}
+          <View style={styles.inLine2}>
+            <Text>Name:</Text>
+            <Text style={styles.valueText}>{props.user.name}</Text>
+          </View>
+          <View style={styles.inLine2}>
+            <Text>Billing Address: </Text>
+            <Text style={styles.valueText}>
+              {props.billingAddress.address1}{' '}
+              {props.billingAddress.address2
+                ? ', ' + props.billingAddress.address2
+                : null}
+              , Dist: {props.billingAddress.city}, State:{' '}
+              {props.billingAddress.state}, Country:{' '}
+              {props.billingAddress.country}
             </Text>
           </View>
+          <View style={styles.inLine2}>
+            <Text>Shipping Address: </Text>
+            <Text style={styles.valueText}>
+              {props.shippingAddress.address1}{' '}
+              {props.shippingAddress.address2
+                ? ', ' + props.shippingAddress.address2
+                : null}
+              , Dist: {props.shippingAddress.city}, State:{' '}
+              {props.shippingAddress.state}, Country:{' '}
+              {props.shippingAddress.country}
+            </Text>
+          </View>
+
+          <View style={styles.inLine2}>
+            <Text>Date Ordered:</Text>
+            <Text style={styles.valueText}>
+              {dateOrdered.split(' ')[2]}-{dateOrdered.split(' ')[1]}-
+              {dateOrdered.split(' ')[4]}, Time: {dateOrdered.split(' ')[3]}
+            </Text>
+          </View>
+
+          <View style={styles.priceContainer}>
+            <View style={[styles.inLine2, { justifyContent: 'space-between' }]}>
+              <Text style={styles.price}>Total order value: </Text>
+              <Text style={styles.price}>
+                {controls.currency}
+                {props.totalPrice}
+              </Text>
+            </View>
+
+            <View style={[styles.inLine2, { justifyContent: 'space-between' }]}>
+              <Text style={styles.price}>Advance Paid: </Text>
+              <Text style={styles.price}>
+                {controls.currency}
+                {props.advancePaid}
+              </Text>
+            </View>
+
+            <View style={[styles.inLine2, { justifyContent: 'space-between' }]}>
+              <Text style={styles.price}>Balance Amount: </Text>
+              <Text style={styles.price}>
+                {controls.currency}
+                {props.balanceToPay}
+              </Text>
+            </View>
+          </View>
+
           <View style={{ width: '100%' }}>
             <EasyButton
-              large
-              primary
+              extralarge
+              secondary
               onPress={() =>
                 props.navigation.navigate('ManageOrders', { order: props })
               }
             >
               <Text style={{ color: 'white', fontWeight: 'bold' }}>
-                Manage Order
+                View & Manage Order
               </Text>
             </EasyButton>
           </View>
@@ -221,11 +177,12 @@ const styles = StyleSheet.create({
   },
   priceContainer: {
     marginTop: 10,
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
+    width: '60%',
   },
   price: {
     fontWeight: 'bold',
+    fontStyle: 'italic',
+    marginLeft: 10,
   },
   select: {
     height: 36,
@@ -255,6 +212,7 @@ const styles = StyleSheet.create({
   },
   statusTitle: {
     textTransform: 'uppercase',
+    fontWeight: 'bold',
   },
   detailsContainer: {
     marginTop: 10,
@@ -263,5 +221,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     margin: 0,
+  },
+  inLine2: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    marginBottom: 5,
+    flexWrap: 'wrap',
+  },
+  valueText: {
+    fontStyle: 'italic',
+    marginLeft: 10,
   },
 });

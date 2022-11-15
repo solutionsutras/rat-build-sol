@@ -1,6 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Logistics from '../../Screens/Admin/ManageLogistics/Logistics';
+import LogisticsDetails from '../../Screens/Admin/ManageLogistics/LogisticsDetails';
 
 const Stack = createStackNavigator();
 
@@ -23,6 +24,13 @@ function AdminLogisticsStack() {
       <Stack.Screen
         name="ViewLogistics"
         component={Logistics}
+        options={{
+          title: 'Logistics',
+        }}
+      />
+      <Stack.Screen
+        name="LogisticsDetails"
+        component={LogisticsDetails}
         options={{
           title: 'Logistics',
         }}

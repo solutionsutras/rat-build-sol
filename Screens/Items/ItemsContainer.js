@@ -231,7 +231,7 @@ const ItemsContainer = (props) => {
           <ActivityIndicator
             style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
             size="large"
-            color="red"
+            color="green"
           />
         </View>
       )}

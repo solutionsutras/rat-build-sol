@@ -30,12 +30,9 @@ import baseUrl from '../../assets/common/baseUrl';
 import axios from 'axios';
 import { ListItem } from 'react-native-elements';
 import MapFunctions from './MapFunctions';
-import Error from '../../Shared/Error';
-import { Alert } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 const ItemDetails = (props) => {
-  const [error, setError] = useState();
   const [item, setitem] = useState(props.route.params.item);
   const [vehicleData, setVehicleData] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -59,9 +56,7 @@ const ItemDetails = (props) => {
   const [minFare, setMinFare] = useState(0);
   const [kmWiseFare, setKmWiseFare] = useState(0);
   const [unitTransportationCost, setUnitTransportationCost] = useState(0);
-  // const [totalTransportationCost, setTotalTransportationCost] = useState(0);
-  const [itemTotalTransportationCost, setItemTotalTransportationCost] =
-    useState(0);
+  const [totalTransportationCost, setTotalTransportationCost] = useState(0);
   const [loadUnloadCost, setLoadUnloadCost] = useState(0);
   const [fromLocationCode, setFromLocationCode] = useState(
     'Chandikhol, Jajpur, Odisha'
@@ -79,12 +74,6 @@ const ItemDetails = (props) => {
   const [requiredNoOfTrips, setRequiredNoOfTrips] = useState(0);
 
   const [userVehiclesArray, setUserVehiclesArray] = useState([]);
-  const [showsSecondVehicle, setShowsSecondVehicle] = useState(false);
-  const [showsThirdVehicle, setThirdVehicle] = useState(false);
-
-  // const [expandMaterialCost, setExpandMaterialCost] = useState(true);
-  // const [expandTransportCost, setExpandTransportCost] = useState(false);
-  // const [expandLogistics, setExpandLogistics] = useState(false);
 
   // Fetch all vehicles information and minimum trip distance
   useEffect(() => {
@@ -159,135 +148,103 @@ const ItemDetails = (props) => {
 
   // Calculate total cost
   useEffect(() => {
-    let tot = isNaN(materialCost + itemTotalTransportationCost)
+    let tot = isNaN(materialCost + totalTransportationCost)
       ? 0
-      : parseInt(materialCost + itemTotalTransportationCost);
+      : parseInt(materialCost + totalTransportationCost);
 
     setItemTotal(tot);
     return () => {};
-  }, [materialCost, itemTotalTransportationCost]);
+  }, [materialCost, totalTransportationCost]);
 
   // Calculate trnsportaion cost
   const calculateTransportCost = (allVehicles) => {
-    setError('');
-    let itemTotalTcost = 0;
+    // console.log('allVehicles: ', allVehicles);
     var qtyLeft = qty;
+    let len = allVehicles.length;
     let tripCount = 0;
     let vehicleArrayElement = [];
-    let len = allVehicles.length;
-    // console.log('unitValue: ', unitValue);
-    // console.log('selectedUnitName: ', selectedUnitName);
-    // console.log('qty: ', qty);
-    // console.log('tripDistance: ', tripDistance);
-    if (!unitValue) {
-      setError('Please select measurement unit');
-      return;
-    }
-    if (!qty) {
-      setError('Please enter material quantity');
-      return;
-    }
-    if (!tripDistance) {
-      setError('Please enter trip distance');
-      return;
-    }
-    if (unitValue)
-      if (len === 0) {
-        setError('Please select a preferred vehicle for shipping');
-      } else {
-        setError('');
-        allVehicles.forEach((veh, index) => {
-          console.log(`${index}.At start---qtyLeft: `, qtyLeft);
-          if (veh && qtyLeft > 0) {
-            // console.log('veh: ', veh);
-            let uFare = parseInt(veh.farePerKm);
-            let mFare = isNaN(parseInt(veh.minFare))
-              ? 0
-              : parseInt(veh.minFare);
+    allVehicles.forEach((veh, index) => {
+      console.log(`${index}.At start---qtyLeft: `, qtyLeft);
+      if (veh) {
+        // console.log('veh: ', veh);
+        let uFare = parseInt(veh.farePerKm);
+        let mFare = isNaN(parseInt(veh.minFare)) ? 0 : parseInt(veh.minFare);
 
-            let luCost = veh.loadUnloadCost;
+        let luCost = veh.loadUnloadCost;
 
-            let capacityArray = [
-              veh.capacityInFoot,
-              veh.capacityInCm,
-              veh.capacityInTon,
-            ];
+        let capacityArray = [
+          veh.capacityInFoot,
+          veh.capacityInCm,
+          veh.capacityInTon,
+        ];
 
-            let unitTCost = 0;
-            let tTax = 0;
+        let unitTCost = 0;
+        let tTax = 0;
 
-            let kmFare = uFare * parseInt(tripDistance);
-            setKmWiseFare(kmFare);
+        let kmFare = uFare * parseInt(tripDistance);
+        setKmWiseFare(kmFare);
 
-            if (tripDistance < minTripDistance) {
-              unitTCost = parseInt(mFare) + parseInt(luCost);
+        if (tripDistance < minTripDistance) {
+          unitTCost = parseInt(minFare) + parseInt(loadUnloadCost);
+        } else {
+          unitTCost = kmFare + parseInt(loadUnloadCost);
+        }
+        if (veh.tollApplicable) {
+          tTax = isNaN(parseInt(veh.tollTax)) ? 0 : parseInt(veh.tollTax);
+          unitTCost = unitTCost + tTax;
+        }
+
+        var tripsRequired = 0;
+        var quantityByThisVehicle = 0;
+
+        if (capacityArray[selectedIndex] !== undefined && qtyLeft > 0) {
+          console.log('mod value: ', qtyLeft % capacityArray[selectedIndex]);
+          if (qtyLeft % capacityArray[selectedIndex] > 0) {
+            if (index !== len - 1) {
+              tripsRequired =
+                Math.ceil(qtyLeft / capacityArray[selectedIndex]) - 1;
+              quantityByThisVehicle =
+                tripsRequired * capacityArray[selectedIndex];
+              qtyLeft = qtyLeft - tripsRequired * capacityArray[selectedIndex];
             } else {
-              unitTCost = kmFare + parseInt(luCost);
+              tripsRequired = Math.ceil(qtyLeft / capacityArray[selectedIndex]);
+              quantityByThisVehicle = qtyLeft;
+              qtyLeft = 0;
             }
-            console.log('1.minFare: ', minFare);
-            console.log('1.kmFare: ', kmFare);
-            console.log('1.luCost: ', luCost);
-            console.log('1.unitTCost: ', unitTCost);
-            if (veh.tollApplicable) {
-              tTax = isNaN(parseInt(veh.tollTax)) ? 0 : parseInt(veh.tollTax);
-              unitTCost = unitTCost + tTax;
-            }
-
-            var tripsRequired = 0;
-            var quantityByThisVehicle = 0;
-
-            if (capacityArray[selectedIndex] !== undefined && qtyLeft > 0) {
-              if (qtyLeft % capacityArray[selectedIndex] > 0) {
-                if (index !== len - 1) {
-                  tripsRequired =
-                    Math.ceil(qtyLeft / capacityArray[selectedIndex]) - 1;
-                  quantityByThisVehicle =
-                    tripsRequired * capacityArray[selectedIndex];
-                  qtyLeft =
-                    qtyLeft - tripsRequired * capacityArray[selectedIndex];
-                } else {
-                  tripsRequired = Math.ceil(
-                    qtyLeft / capacityArray[selectedIndex]
-                  );
-                  quantityByThisVehicle = qtyLeft;
-                  qtyLeft = 0;
-                }
-              } else {
-                tripsRequired = Math.ceil(
-                  qtyLeft / capacityArray[selectedIndex]
-                );
-                quantityByThisVehicle = qtyLeft;
-                qtyLeft = 0;
-              }
-              console.log('tripsRequired: ', tripsRequired);
-              // setRequiredNoOfTrips(requiredNoOfTrips + tripsRequired);
-              tripCount += tripsRequired;
-            }
-
-            setUnitTransportationCost(unitTCost);
-            let totalTcost = unitTCost * tripsRequired;
-            itemTotalTcost += totalTcost;
-            setItemTotalTransportationCost(itemTotalTcost);
-            setRemainingQty(qtyLeft);
-
-            vehicleArrayElement[vehicleArrayElement.length] = {
-              selectedVehicle: veh,
-              kmWiseFare: kmFare,
-              selectedUnitName: selectedUnitName,
-              tripDistance: tripDistance,
-              minTripDistance: minTripDistance,
-              requiredNoOfTrips: tripsRequired,
-              quantityByThisVehicle: quantityByThisVehicle,
-              unitTransportationCost: unitTCost,
-              totalTransportationCost: totalTcost,
-            };
+          } else {
+            tripsRequired = Math.ceil(qtyLeft / capacityArray[selectedIndex]);
+            quantityByThisVehicle = qtyLeft;
+            qtyLeft = 0;
           }
-          // console.log('vehicleArrayElement: ', vehicleArrayElement);
-        });
+          console.log('tripsRequired: ', tripsRequired);
+          // setRequiredNoOfTrips(requiredNoOfTrips + tripsRequired);
+          tripCount += tripsRequired;
+        }
 
-        setRequiredNoOfTrips(tripCount);
-        setPreferredVehicles(vehicleArrayElement);
+        setUnitTransportationCost(unitTCost);
+        setTotalTransportationCost(unitTCost * tripsRequired);
+        setRemainingQty(qtyLeft);
+
+        vehicleArrayElement[vehicleArrayElement.length] = {
+          selectedVehicle: veh,
+          selectedUnitName: selectedUnitName,
+          tripDistance: tripDistance,
+          minTripDistance: minTripDistance,
+          requiredNoOfTrips: tripsRequired,
+          quantityByThisVehicle: quantityByThisVehicle,
+        };
       }
+      console.log('At end---qtyLeft: ', qtyLeft);
+    });
+
+    setRequiredNoOfTrips(tripCount);
+    console.log('tripCount: ', tripCount);
+    console.log('requiredNoOfTrips: ', requiredNoOfTrips);
+
+    setPreferredVehicles(vehicleArrayElement);
+
+    console.log('vehicleArrayElement: ', vehicleArrayElement);
+    console.log('preferredVehicles: ', preferredVehicles);
   };
 
   const resetVehicles = () => {
@@ -312,7 +269,7 @@ const ItemDetails = (props) => {
         <View style={styles.contentContainer}>
           <Text style={styles.contentText}>{item.itemName}</Text>
           <Text style={styles.contentText}>
-            Type : {item.quality.qualityName}
+            Quality : {item.quality.qualityName}
           </Text>
         </View>
         <View>
@@ -447,7 +404,7 @@ const ItemDetails = (props) => {
           <Text
             style={{ fontSize: 14, fontStyle: 'italic', fontWeight: 'bold' }}
           >
-            Select preferred vehicle
+            Select 1st preferred vehicle
           </Text>
           <View style={styles.selectView}>
             <Select
@@ -500,127 +457,120 @@ const ItemDetails = (props) => {
         </View>
 
         {/* Second preferred vehicle */}
-        {showsSecondVehicle ? (
-          <View style={{ marginTop: 10 }}>
-            <Text
-              style={{ fontSize: 14, fontStyle: 'italic', fontWeight: 'bold' }}
+        <View style={{ marginTop: 10 }}>
+          <Text
+            style={{ fontSize: 14, fontStyle: 'italic', fontWeight: 'bold' }}
+          >
+            Select 2nd preferred vehicle
+          </Text>
+          <View style={styles.selectView}>
+            <Select
+              placeholder="Select Vehicle"
+              selectedValue={vehicle1}
+              width={width * 0.75}
+              style={styles.select}
+              placeholderTextColor={'#333'}
+              accessibilityLabel="Choose Vehicle"
+              _selectedItem={{
+                bg: 'blue.300',
+              }}
+              onValueChange={(e) => {
+                setVehicle1(e);
+                // populateFare(e);
+              }}
             >
-              Select 2nd preferred vehicle
-            </Text>
-            <View style={styles.selectView}>
-              <Select
-                placeholder="Select Vehicle"
-                selectedValue={vehicle1}
-                width={width * 0.75}
-                style={styles.select}
-                placeholderTextColor={'#333'}
-                accessibilityLabel="Choose Vehicle"
-                _selectedItem={{
-                  bg: 'blue.300',
-                }}
-                onValueChange={(e) => {
-                  setVehicle1(e);
-                  // populateFare(e);
-                }}
-              >
-                {vehicleData.map((v) => {
-                  var capText = ' (Cap. ';
-                  {
-                    if (selectedIndex === 0) {
-                      capText += v.capacityInFoot + ' Foot) ';
-                    } else if (selectedIndex === 1) {
-                      capText += v.capacityInCm + ' Cm) ';
-                    } else if (selectedIndex === 2) {
-                      capText += v.capacityInTon + ' Ton) ';
-                    }
+              {vehicleData.map((v) => {
+                var capText = ' (Cap. ';
+                {
+                  if (selectedIndex === 0) {
+                    capText += v.capacityInFoot + ' Foot) ';
+                  } else if (selectedIndex === 1) {
+                    capText += v.capacityInCm + ' Cm) ';
+                  } else if (selectedIndex === 2) {
+                    capText += v.capacityInTon + ' Ton) ';
                   }
-                  return (
-                    <Select.Item
-                      label={
-                        v.brand +
-                        '-' +
-                        v.model +
-                        capText +
-                        '- Fare: ' +
-                        controls.currency +
-                        v.farePerKm +
-                        '/KM ' +
-                        '- Min Fare: ' +
-                        controls.currency +
-                        v.minFare
-                      }
-                      value={v.id}
-                      key={v.id}
-                    />
-                  );
-                })}
-              </Select>
-            </View>
+                }
+                return (
+                  <Select.Item
+                    label={
+                      v.brand +
+                      '-' +
+                      v.model +
+                      capText +
+                      '- Fare: ' +
+                      controls.currency +
+                      v.farePerKm +
+                      '/KM ' +
+                      '- Min Fare: ' +
+                      controls.currency +
+                      v.minFare
+                    }
+                    value={v.id}
+                    key={v.id}
+                  />
+                );
+              })}
+            </Select>
           </View>
-        ) : null}
+        </View>
 
         {/* {remainingQty > 0 ? ( */}
-        {showsSecondVehicle ? (
-          <View style={{ marginTop: 10 }}>
-            <Text
-              style={{ fontSize: 14, fontStyle: 'italic', fontWeight: 'bold' }}
+        <View style={{ marginTop: 10 }}>
+          <Text
+            style={{ fontSize: 14, fontStyle: 'italic', fontWeight: 'bold' }}
+          >
+            Select 3rd preferred vehicle
+          </Text>
+          <View style={styles.selectView}>
+            <Select
+              placeholder="Select Vehicle"
+              selectedValue={vehicle2}
+              width={width * 0.75}
+              style={styles.select}
+              placeholderTextColor={'#333'}
+              accessibilityLabel="Choose Vehicle"
+              _selectedItem={{
+                bg: 'blue.300',
+              }}
+              onValueChange={(e) => {
+                setVehicle2(e);
+              }}
             >
-              Select 3rd preferred vehicle
-            </Text>
-            <View style={styles.selectView}>
-              <Select
-                placeholder="Select Vehicle"
-                selectedValue={vehicle2}
-                width={width * 0.75}
-                style={styles.select}
-                placeholderTextColor={'#333'}
-                accessibilityLabel="Choose Vehicle"
-                _selectedItem={{
-                  bg: 'blue.300',
-                }}
-                onValueChange={(e) => {
-                  setVehicle2(e);
-                }}
-              >
-                {vehicleData.map((v) => {
-                  var capText = ' (Cap. ';
-                  {
-                    if (selectedIndex === 0) {
-                      capText += v.capacityInFoot + ' Foot) ';
-                    } else if (selectedIndex === 1) {
-                      capText += v.capacityInCm + ' Cm) ';
-                    } else if (selectedIndex === 2) {
-                      capText += v.capacityInTon + ' Ton) ';
-                    }
+              {vehicleData.map((v) => {
+                var capText = ' (Cap. ';
+                {
+                  if (selectedIndex === 0) {
+                    capText += v.capacityInFoot + ' Foot) ';
+                  } else if (selectedIndex === 1) {
+                    capText += v.capacityInCm + ' Cm) ';
+                  } else if (selectedIndex === 2) {
+                    capText += v.capacityInTon + ' Ton) ';
                   }
-                  return (
-                    <Select.Item
-                      label={
-                        v.brand +
-                        '-' +
-                        v.model +
-                        capText +
-                        '- Fare: ' +
-                        controls.currency +
-                        v.farePerKm +
-                        '/KM ' +
-                        '- Min Fare: ' +
-                        controls.currency +
-                        v.minFare
-                      }
-                      value={v.id}
-                      key={v.id}
-                    />
-                  );
-                })}
-              </Select>
-            </View>
+                }
+                return (
+                  <Select.Item
+                    label={
+                      v.brand +
+                      '-' +
+                      v.model +
+                      capText +
+                      '- Fare: ' +
+                      controls.currency +
+                      v.farePerKm +
+                      '/KM ' +
+                      '- Min Fare: ' +
+                      controls.currency +
+                      v.minFare
+                    }
+                    value={v.id}
+                    key={v.id}
+                  />
+                );
+              })}
+            </Select>
           </View>
-        ) : null}
+        </View>
         {/* ) : null} */}
-
-        <View>{error ? <Error message={error} /> : null}</View>
-
         <View
           style={{
             marginTop: 10,
@@ -632,7 +582,7 @@ const ItemDetails = (props) => {
             style={styles.actionButton}
             onPress={() => calculateTransportCost(userVehiclesArray)}
           >
-            <Text style={{ color: colors.cardBackground }}>
+            <Text style={{ color: colors.grey2 }}>
               Calculate Transport Cost
             </Text>
           </TouchableOpacity>
@@ -641,120 +591,101 @@ const ItemDetails = (props) => {
             style={styles.actionButton}
             onPress={() => resetVehicles()}
           >
-            <Text style={{ color: colors.cardBackground }}>Reset Vehicles</Text>
+            <Text style={{ color: colors.grey2 }}>Reset Vehicles</Text>
           </TouchableOpacity>
         </View>
-
-        {/* Transport cost calculated */}
         {preferredVehicles.length > 0 ? (
           <View>
             <Text style={styles.tCostTextHeading}>
               Transaport cost calculation
             </Text>
-            {preferredVehicles.map((veh, index) => {
-              return (
-                <View>
-                  <View>
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        color: colors.grey1,
-                        textTransform: 'uppercase',
-                        marginVertical: 5,
-                      }}
-                    >
-                      Vehicle {index + 1}
-                    </Text>
-                  </View>
-                  <View style={styles.inLine}>
-                    <Text style={styles.tCostText}>A. Per KM fare:</Text>
-                    <Text style={styles.tCostValue}>
-                      {controls.currency}
-                      {veh.selectedVehicle.farePerKm}
-                    </Text>
-                  </View>
-                  <View style={styles.inLine}>
-                    <Text style={styles.tCostText}>
-                      B. Trip distance (approx.):
-                    </Text>
-                    <Text style={styles.tCostValue}>{veh.tripDistance} KM</Text>
-                  </View>
+            <View>
+              <View style={styles.inLine}>
+                <Text style={styles.tCostText}>A. Per KM fare:</Text>
+                <Text style={styles.tCostValue}>
+                  {controls.currency}
+                  {unitFare}
+                </Text>
+              </View>
 
-                  <View style={styles.inLine}>
-                    <Text style={styles.tCostText}>
-                      C. KM wise fare (A x B):
-                    </Text>
-                    <Text style={styles.tCostValue}>
-                      {controls.currency}
-                      {veh.kmWiseFare}
-                    </Text>
-                  </View>
+              <View style={styles.inLine}>
+                <Text style={styles.tCostText}>
+                  B. Trip distance (approx.):
+                </Text>
+                <Text style={styles.tCostValue}>{tripDistance} KM</Text>
+              </View>
 
-                  <View style={styles.inLine}>
-                    <Text style={styles.tCostText}>
-                      D. Minimum fare (If distance less than {minTripDistance}{' '}
-                      KM):
-                    </Text>
-                    <Text style={styles.tCostValue}>
-                      {controls.currency}
-                      {veh.selectedVehicle.minFare}
-                    </Text>
-                  </View>
+              <View style={styles.inLine}>
+                <Text style={styles.tCostText}>C. KM wise fare (A x B):</Text>
+                <Text style={styles.tCostValue}>
+                  {controls.currency}
+                  {kmWiseFare}
+                </Text>
+              </View>
 
-                  <View style={styles.inLine}>
-                    <Text style={styles.tCostText}>
-                      E. Loading-unloading cost:
-                    </Text>
-                    <Text style={styles.tCostValue}>
-                      {controls.currency}
-                      {veh.selectedVehicle.loadUnloadCost}
-                    </Text>
-                  </View>
+              <View style={styles.inLine}>
+                <Text style={styles.tCostText}>
+                  D. Minimum fare (If distance less than {minTripDistance} KM):
+                </Text>
+                <Text style={styles.tCostValue}>
+                  {controls.currency}
+                  {minFare}
+                </Text>
+              </View>
 
-                  {veh.selectedVehicle.tripDistance <
-                  veh.selectedVehicle.minTripDistance ? (
-                    <View style={styles.inLine}>
-                      <Text style={styles.tCostText}>
-                        F. Single vehicle transportation cost (D + E):
-                      </Text>
-                      <Text style={styles.tCostValue}>
-                        {controls.currency}
-                        {veh.unitTransportationCost}
-                      </Text>
-                    </View>
-                  ) : (
-                    <View style={styles.inLine}>
-                      <Text style={styles.tCostText}>
-                        F. Single trip transportation cost (C + E):
-                      </Text>
-                      <Text style={styles.tCostValue}>
-                        {controls.currency}
-                        {veh.unitTransportationCost}
-                      </Text>
-                    </View>
-                  )}
+              <View style={styles.inLine}>
+                <Text style={styles.tCostText}>E. Loading-unloading cost:</Text>
+                <Text style={styles.tCostValue}>
+                  {controls.currency}
+                  {loadUnloadCost}
+                </Text>
+              </View>
 
-                  <View style={styles.inLine}>
-                    <Text style={styles.tCostText}>
-                      G. No of trips required:
-                    </Text>
-                    <Text style={styles.tCostValue}>
-                      {veh.requiredNoOfTrips}
-                    </Text>
-                  </View>
+              {/* <View style={styles.inLine}>
+                  <Text style={styles.tCostText}>F. Toll Fee:</Text>
+                  <Text style={styles.tCostValue}>
+                    {controls.currency}
+                    {tollApplicable ? tollTax : 0}
+                  </Text>
+                </View> */}
 
-                  <View style={styles.inLine}>
-                    <Text style={styles.tCostText}>
-                      H. Total transportation cost(F x G):
-                    </Text>
-                    <Text style={styles.tCostValue}>
-                      {controls.currency}
-                      {veh.totalTransportationCost}
-                    </Text>
-                  </View>
+              {tripDistance < minTripDistance ? (
+                <View style={styles.inLine}>
+                  <Text style={styles.tCostText}>
+                    F. Single vehicle transportation cost (D + E):
+                  </Text>
+                  <Text style={styles.tCostValue}>
+                    {controls.currency}
+                    {unitTransportationCost}
+                  </Text>
                 </View>
-              );
-            })}
+              ) : (
+                <View style={styles.inLine}>
+                  <Text style={styles.tCostText}>
+                    F. Single vehicle transportation cost (C + E):
+                  </Text>
+                  <Text style={styles.tCostValue}>
+                    {controls.currency}
+                    {unitTransportationCost}
+                  </Text>
+                </View>
+              )}
+
+              <View style={styles.inLine}>
+                <Text style={styles.tCostText}>G. No of trips required:</Text>
+                <Text style={styles.tCostValue}>{requiredNoOfTrips}</Text>
+              </View>
+
+              <View style={styles.inLine}>
+                <Text style={styles.tCostText}>
+                  H. Total transportation cost(F x G):
+                </Text>
+                <Text style={styles.tCostValue}>
+                  {controls.currency}
+                  {totalTransportationCost}
+                </Text>
+              </View>
+            </View>
           </View>
         ) : null}
 
@@ -763,7 +694,7 @@ const ItemDetails = (props) => {
             <Text style={{ color: 'white' }}>Total Transportation Cost: </Text>
             <Text style={{ color: 'white' }}>
               {controls.currency}
-              {itemTotalTransportationCost.toFixed(2)}
+              {totalTransportationCost.toFixed(2)}
             </Text>
           </View>
         </View>
@@ -822,7 +753,7 @@ const ItemDetails = (props) => {
                     unitValue,
                     rate,
                     selectedUnitName,
-                    preferredVehicles,
+                    selectedVehicle,
                     materialCost,
                     fromLocationCode,
                     toLocationCode,
@@ -832,7 +763,7 @@ const ItemDetails = (props) => {
                     loadUnloadCost,
                     unitTransportationCost,
                     requiredNoOfTrips,
-                    itemTotalTransportationCost,
+                    totalTransportationCost,
                     discountPercent,
                     discountAmount,
                     itemTotal
@@ -863,7 +794,7 @@ const mapDispatchToProps = (dispatch) => {
       unitValue,
       rate,
       selectedUnitName,
-      preferredVehicles,
+      selectedVehicle,
       materialCost,
       fromLocationCode,
       toLocationCode,
@@ -873,7 +804,7 @@ const mapDispatchToProps = (dispatch) => {
       loadUnloadCost,
       unitTransportationCost,
       requiredNoOfTrips,
-      itemTotalTransportationCost,
+      totalTransportationCost,
       discountPercent,
       discountAmount,
       itemTotal
@@ -885,7 +816,7 @@ const mapDispatchToProps = (dispatch) => {
           selectedUnit: unitValue,
           rate: rate,
           unitName: selectedUnitName,
-          vehicle: preferredVehicles,
+          vehicle: selectedVehicle,
           materialCost: materialCost,
           fromLocationCode: fromLocationCode,
           toLocationCode: toLocationCode,
@@ -895,7 +826,7 @@ const mapDispatchToProps = (dispatch) => {
           loadUnloadCost: loadUnloadCost,
           unitTransportationCost: unitTransportationCost,
           requiredNoOfTrips: requiredNoOfTrips,
-          itemTotalTransportationCost: itemTotalTransportationCost,
+          totalTransportationCost: totalTransportationCost,
           discountPercent: discountPercent,
           discountAmount: discountAmount,
           itemTotal: itemTotal,
@@ -1058,7 +989,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 3,
     borderColor: colors.buttons,
-    backgroundColor: colors.buttons,
+    backgroundColor: 'white',
     marginVertical: 5,
     elevation: 1,
   },

@@ -1,6 +1,14 @@
 import React, { useContext, useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Button, Dimensions } from 'react-native';
-import { Center } from 'native-base';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Button,
+  Dimensions,
+  TouchableOpacity,
+} from 'react-native';
+import { Center, Icon } from 'native-base';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -9,104 +17,216 @@ import baseUrl from '../../assets/common/baseUrl';
 
 import AuthGlobal from '../../Context/store/AuthGlobal';
 import { logoutUser } from '../../Context/actions/Auth.actions';
-import OrderCard from '../../Shared/OrderCard';
 import { colors } from '../../assets/global/globalStyles';
+import { MaterialIcons } from '@expo/vector-icons';
 // import { useEffect } from 'react/cjs/react.development';
-const { height, width } = Dimensions.get("window");
-var frm = "";
+const { height, width } = Dimensions.get('window');
+var frm = '';
 
 const UserProfile = (props) => {
-    
-    if(props.route.params.fromNav !== "" || props.route.params.fromNav !== null){
-        frm = props.route.params.fromNav;
-    }
+  if (
+    props.route.params.fromNav !== '' ||
+    props.route.params.fromNav !== null
+  ) {
+    frm = props.route.params.fromNav;
+  }
 
-    const [count, setCount] = React.useState(0);
-    const context = useContext(AuthGlobal)
-    const [userProfile, setUserProfile] = useState()
-    const [orders, setOrders] = useState([]);
+  const [count, setCount] = React.useState(0);
+  const context = useContext(AuthGlobal);
+  const [profile, setProfile] = useState();
+  //   const [orders, setOrders] = useState([]);
 
-    // console.log(context.stateUser.user)
-    // React.useLayoutEffect(() => {
-    //     props.navigation.setOptions({
-    //       headerLeft: () => (
-    //         <Button onPress={() => setCount(c => c + 1)} title="Update count" />
-    //       ),
-    //     });
-    //   }, [props.navigation]);
-
-    useFocusEffect((
-        useCallback(() => {
-            if (context.stateUser.isAuthenticated === false || context.stateUser.isAuthenticated === null) {
-                props.navigation.navigate("Login")
-            }
-            AsyncStorage.getItem("jwt")
-                .then((res) => {
-                    axios
-                        .get(`${baseUrl}users/${context.stateUser.user.userId}`, {
-                            headers: { Authorization: `Bearer ${res}` },
-                        })
-                        .then((user) => setUserProfile(user.data))
-                })
-                .catch((error) => console.log(error))
-
+  useFocusEffect(
+    useCallback(() => {
+      if (
+        context.stateUser.isAuthenticated === false ||
+        context.stateUser.isAuthenticated === null
+      ) {
+        props.navigation.navigate('Login');
+      } else {
+        AsyncStorage.getItem('jwt')
+          .then((res) => {
+            // const config = { headers: { Authorization: `Bearer ${token}` } };
             axios
-                .get(`${baseUrl}orders`)
-                .then((res) => {
-                    const data = res.data;
-                    const myOrders = data.filter(
-                        (ord) => ord.user._id === context.stateUser.user.userId
-                    );
-                    setOrders(myOrders);
-                })
-                .catch((error) => console.log(error))
+              .get(`${baseUrl}users/${context.stateUser.user.userId}`, {
+                headers: { Authorization: `Bearer ${res}` },
+              })
+              .then((user) => {
+                setProfile(user.data);
 
-            return () => {
-                setUserProfile();
-                setOrders();
-            }
-        }, [context.stateUser.isAuthenticated])
-    ))
+                // console.log('Profile: ', profile);
+              });
+          })
+          .catch((error) => console.log(error));
 
-    return (
-        <Center style={styles.container}>
-            <ScrollView contentContainerStyle={styles.contentContainer}>
-                <View style={{ height: width / 2, width: width, backgroundColor: colors.buttons }}>
-                    <Text style={{ fontSize: 30 }}>{userProfile ? userProfile.name : ""}</Text>
-                    <View style={{ marginTop: 20, }}>
-                        <Text style={{ margin: 10, }}>Email: {userProfile ? userProfile.email : ""}</Text>
-                        <Text style={{ margin: 10, }}>Phone: {userProfile ? userProfile.phone : ""}</Text>
-                    </View>
-                </View>
+        // axios
+        //   .get(`${baseUrl}orders`)
+        //   .then((res) => {
+        //     const data = res.data;
+        //     const myOrders = data.filter(
+        //       (ord) => ord.user._id === context.stateUser.user.userId
+        //     );
+        //     setOrders(myOrders);
+        //   })
+        //   .catch((error) => console.log(error));
+      }
+      return () => {
+        setProfile();
+        // setOrders();
+      };
+    }, [context.stateUser.isAuthenticated])
+  );
 
-                <View style={{ marginTop: 80, }}>
-                    <Button
-                        title={"Sign out"}
-                        onPress={() => [
-                            AsyncStorage.removeItem("jwt"),
-                            logoutUser(context.dispatch)
-                        ]}
-                    />
-                </View>
-            </ScrollView>
-        </Center>
-    )
-}
+  return (
+    <Center style={styles.container}>
+      <ScrollView>
+        {profile ? (
+          <View style={styles.contentContainer}>
+            {profile.name ? (
+              <View style={styles.userDetails}>
+                <Text style={styles.title}>Name: </Text>
+                <Text style={styles.value}>{profile.name}</Text>
+              </View>
+            ) : null}
 
+            {profile.address ? (
+              <View style={styles.userDetails}>
+                <Text style={styles.title}>Address: </Text>
+                <Text style={styles.value}>{profile.address}</Text>
+              </View>
+            ) : null}
+
+            {profile.city ? (
+              <View style={styles.userDetails}>
+                <Text style={styles.title}>City: </Text>
+                <Text style={styles.value}>{profile.city}</Text>
+              </View>
+            ) : null}
+
+            {profile.state ? (
+              <View style={styles.userDetails}>
+                <Text style={styles.title}>State: </Text>
+                <Text style={styles.value}>{profile.state}</Text>
+              </View>
+            ) : null}
+
+            {profile.pin ? (
+              <View style={styles.userDetails}>
+                <Text style={styles.title}>PIN: </Text>
+                <Text style={styles.value}>{profile.pin}</Text>
+              </View>
+            ) : null}
+
+            <View style={styles.userDetails}>
+              <Text style={styles.title}>Email: </Text>
+              <Text style={styles.value}>{profile.email}</Text>
+            </View>
+
+            <View style={styles.userDetails}>
+              <Text style={styles.title}>Phone: </Text>
+              <Text style={styles.value}>{profile.phone}</Text>
+            </View>
+
+            <TouchableOpacity
+              style={{
+                flexDirection: 'row',
+                marginTop: 10,
+                alignItems: 'center',
+              }}
+              onPress={() => {props.navigation.navigate('EditProfile')}}
+            >
+              <Icon
+                mr="1"
+                size="4"
+                color={colors.buttons}
+                as={<MaterialIcons name="edit" />}
+              />
+              <Text
+                style={{
+                  color: colors.buttons,
+                  textDecorationLine: 'underline',
+                }}
+              >
+                Edit profile
+              </Text>
+            </TouchableOpacity>
+
+            <View style={[styles.userDetails, { marginTop: 30 }]}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => props.navigation.navigate('Orders')}
+              >
+                <Text style={styles.actionText}>My Orders</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => [
+                  AsyncStorage.removeItem('jwt'),
+                  logoutUser(context.dispatch),
+                ]}
+              >
+                <Text style={styles.actionText}>Logout</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : null}
+      </ScrollView>
+    </Center>
+  );
+};
 
 export default UserProfile;
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    contentContainer: {
-        alignItems: 'center',
-    },
-    order: {
-        marginTop: 20,
-        alignItems: 'center',
-        marginBottom: 60,
-    }
-})
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  contentContainer: {
+    alignSelf: 'center',
+    margin: 0,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: colors.grey5,
+    borderColor: colors.grey2,
+    borderWidth: 0.5,
+    width: width - 30,
+  },
+  order: {
+    marginTop: 20,
+    alignItems: 'center',
+    marginBottom: 60,
+  },
+  userDetails: {
+    // height: width / 2,
+    // backgroundColor: colors.grey5,
+    // padding: 20,
+    marginVertical: 2,
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
+  title: {
+    color: colors.grey1,
+    fontWeight: '700',
+  },
+  value: {
+    color: colors.grey1,
+    fontStyle: 'italic',
+    marginLeft: 5,
+    flexWrap: 'wrap',
+  },
+  actionButton: {
+    backgroundColor: colors.buttons,
+    borderRadius: 5,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    marginRight: 10,
+  },
+  actionText: {
+    color: colors.cardBackground,
+    textTransform: 'uppercase',
+  },
+});

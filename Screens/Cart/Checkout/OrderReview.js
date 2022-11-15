@@ -1,6 +1,13 @@
 import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, StyleSheet, Dimensions, ScrollView } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Dimensions,
+  ScrollView,
+  FlatList,
+  TouchableOpacity,
+} from 'react-native';
 import { ListItem, Icon } from 'react-native-elements';
 import { Text, Image, Button } from 'native-base';
 import { connect } from 'react-redux';
@@ -21,28 +28,33 @@ var { width, height } = Dimensions.get('window');
 const OrderReview = (props) => {
   const context = useContext(AuthGlobal);
   const order = props.route.params.order;
-  console.log(order);
+  // console.log('props: ', props);
 
   const [advanceToPay, setAdvanceToPay] = useState(0);
+  const [materialTotal, setMaterialTotal] = useState(0);
+  const [transportaionTotal, setTransportaionTotal] = useState(0);
   const [grandTotal, setGrandTotal] = useState(0);
   const [discountPercent, setDiscountPercent] = useState(0);
+  const [discountAmount, setDiscountAmount] = useState(0);
   const [paymentStatus, setPaymentStatus] = useState(false);
   const [user, setUser] = useState();
   const [transaction, setTransaction] = useState();
   const [token, setToken] = useState();
 
-  var totalTransCost = 0;
-  order.orderItems.forEach((item) => {
-    return (totalTransCost += item.transportationCost);
-  });
-
+  var mTotal = 0;
+  var tTotal = 0;
   var gTotal = 0;
+
   order.orderItems.forEach((item) => {
-    return (gTotal += item.itemTotal);
+    mTotal += item.materialCost;
+    tTotal += item.itemTotalTransportationCost;
+    gTotal += item.itemTotal;
   });
 
   useEffect(() => {
-    setAdvanceToPay(totalTransCost);
+    setMaterialTotal(mTotal);
+    setTransportaionTotal(tTotal);
+    setAdvanceToPay(tTotal);
     setGrandTotal(gTotal);
     setUser(context.stateUser.user.userId);
 
@@ -103,12 +115,11 @@ const OrderReview = (props) => {
 
   const placeOrder = () => {
     if (paymentStatus === true) {
-      order.discountPercent = discountPercent;
       order.advanceToPay = advanceToPay;
       order.advancePaid = advanceToPay;
       order.balanceToPay = grandTotal - advanceToPay;
       order.transactions = [transaction[0]._id];
-      
+
       axios
         .post(`${baseUrl}orders`, order)
         .then((res) => {
@@ -139,40 +150,53 @@ const OrderReview = (props) => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.titleContainer}>
-        <Text style={{ fontSize: 18, }}>Please review and pay to place the Order </Text>
+        <Text style={{ fontSize: 14, alignSelf:'center' }}>
+          Please review the items place the order{' '}
+        </Text>
       </View>
       {props.route.params ? (
         <View style={{ borderWidth: 1, borderColor: colors.buttons }}>
           <Text style={styles.title}>Shipping to:</Text>
-          <View style={{ padding: 10 }}>
+          <View style={{ paddingVertical: 5, paddingHorizontal: 10 }}>
             <Text>Name: {order.custName}</Text>
-            <Text>Adrress1: {order.shippingAddress1}</Text>
-            {order.shippingAddress2 ? (
-              <Text>Adrress2: {order.shippingAddress2}</Text>
-            ) : null}
-            <Text>City: {order.city}</Text>
-            <Text>State: {order.state}</Text>
-            <Text>Country: {order.country}</Text>
-            <Text>PIN: {order.pin}</Text>
-            <Text>Phone No: {order.phone}</Text>
+
+            {order.shippingAddress.shippingAddress2 ? (
+              <Text>
+                Adrress: {order.shippingAddress.shippingAddress1},{' '}
+                {order.shippingAddress.shippingAddress2}
+              </Text>
+            ) : (
+              <Text>Adrress: {order.shippingAddress.shippingAddress1}</Text>
+            )}
+            <Text>City: {order.shippingAddress.city}</Text>
+            <Text>State: {order.shippingAddress.state}</Text>
+            <Text>Country: {order.shippingAddress.country}</Text>
+            <Text>PIN: {order.shippingAddress.pin}</Text>
+            <Text>Phone No: {order.shippingAddress.phone}</Text>
           </View>
+
           <Text style={styles.title}>Items:</Text>
+
+          <ListHeader />
           {order.orderItems.map((i) => (
             <ListItem style={styles.listItem} key={i.item.itemName}>
               <View style={styles.cartBody}>
-                <Image
-                  alt={i.item.itemName}
-                  source={{
-                    uri: i.item.image
-                      ? i.item.image
-                      : 'https://public.solutionsutras.com/rat/images/no-item-image.png',
-                  }}
-                  size={6}
-                  resizeMode={'contain'}
-                />
-                <Text style={styles.contentText}>{i.item.itemName}</Text>
-                <Text style={{}}>
-                  Item total: {controls.currency}
+                <Text style={[styles.contentText, { width: width / 5 }]}>
+                  {i.item.itemName} ({i.item.quality.qualityName})
+                </Text>
+                <Text style={[styles.contentText, { width: width / 8 }]}>
+                  {i.qty} {i.unitName}
+                </Text>
+                <Text style={styles.contentText}>
+                  {controls.currency}
+                  {i.materialCost}
+                </Text>
+                <Text style={styles.contentText}>
+                  {controls.currency}
+                  {i.itemTotalTransportationCost}
+                </Text>
+                <Text style={styles.contentText}>
+                  {controls.currency}
                   {i.itemTotal}
                 </Text>
               </View>
@@ -183,8 +207,19 @@ const OrderReview = (props) => {
 
       <View style={[{ marginHorizontal: 20, marginVertical: 10 }]}>
         <View style={styles.cartBody}>
-          <Text style={styles.totalText}>Total oder value</Text>
-          <Text style={{}}>
+          <Text style={[styles.contentTextBold, styles.contextTextTotal]}>
+            Totals
+          </Text>
+          {/* <Text style={[styles.contentText, { width: width / 8 }]}></Text> */}
+          <Text style={styles.contentText}>
+            {controls.currency}
+            {materialTotal}
+          </Text>
+          <Text style={styles.contentText}>
+            {controls.currency}
+            {transportaionTotal}
+          </Text>
+          <Text style={styles.contentText}>
             {controls.currency}
             {grandTotal}
           </Text>
@@ -193,10 +228,20 @@ const OrderReview = (props) => {
 
       <View style={styles.advanceAmt}>
         <View style={styles.cartBody}>
-          <Text style={[styles.totalText, { color: colors.buttons }]}>
-            Advance amount to pay
+          <Text
+            style={[
+              styles.totalText,
+              { color: colors.grey2, fontStyle: 'italic' },
+            ]}
+          >
+            Advance amount to be paid
           </Text>
-          <Text style={[styles.totalText, { color: colors.buttons }]}>
+          <Text
+            style={[
+              styles.totalText,
+              { color: colors.grey2, fontStyle: 'italic' },
+            ]}
+          >
             {controls.currency}
             {advanceToPay}
           </Text>
@@ -212,18 +257,32 @@ const OrderReview = (props) => {
 
       <View style={{ alignItems: 'center', margin: 20 }}>
         <EasyButton
-          large
+          extralarge
           primary
           // onPress={() => props.navigation.navigate('Payment', { order })}
           onPress={() => processPayment()}
         >
-          <Text style={{ color: 'white' }}>
+          <Text style={{ color: 'white', fontSize: 13 }}>
             Pay {controls.currency}
-            {totalTransCost}
+            {tTotal} & Proceed
           </Text>
         </EasyButton>
       </View>
     </ScrollView>
+  );
+};
+
+const ListHeader = () => {
+  return (
+    <View style={styles.listHeader}>
+      <Text style={[styles.listHeaderText, { width: width / 4 }]}>
+        Material
+      </Text>
+      <Text style={[styles.listHeaderText, { width: width / 10 }]}>Qty</Text>
+      <Text style={styles.listHeaderText}>Material Cost</Text>
+      <Text style={styles.listHeaderText}>Transport Cost</Text>
+      <Text style={styles.listHeaderText}>Item Total</Text>
+    </View>
   );
 };
 
@@ -238,19 +297,19 @@ export default connect(null, mapDispatchToProps)(OrderReview);
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 30,
+    paddingHorizontal: 15,
     height: height,
     backgroundColor: 'white',
     alignContent: 'center',
   },
   titleContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical:20,
+    alignSelf:'flex-start',
+    marginVertical: 10,
+    marginLeft:5,
   },
   title: {
     alignSelf: 'center',
-    margin: 8,
+    margin: 5,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -273,20 +332,44 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     flexDirection: 'row',
   },
+  listHeader: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    padding: 5,
+    paddingLeft: 10,
+    backgroundColor: colors.grey2,
+    elevation: 1,
+  },
+  listHeaderText: {
+    color: colors.cardBackground,
+    flexWrap: 'wrap',
+    fontSize: 12,
+    marginHorizontal: 3,
+    width: width / 6,
+  },
   contentText: {
-    fontSize: 14,
-    marginHorizontal: 15,
+    flexWrap: 'wrap',
+    fontSize: 12,
+    marginHorizontal: 3,
+    width: width / 7,
   },
   contentTextBold: {
+    flexWrap: 'wrap',
     fontSize: 14,
-    marginHorizontal: 15,
+    marginHorizontal: 3,
     fontWeight: 'bold',
+  },
+  contextTextTotal: {
+    width: width / 3,
+    textTransform: 'uppercase',
+    letterSpacing: 5,
   },
   totalText: {
     fontSize: 16,
     marginHorizontal: 15,
   },
-
   advanceAmt: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -295,5 +378,10 @@ const styles = StyleSheet.create({
     borderColor: '#CCC',
     margin: 10,
     padding: 10,
+  },
+  itemsContainer: {
+    flexDirection: 'row',
+    padding: 5,
+    width: width + 100,
   },
 });

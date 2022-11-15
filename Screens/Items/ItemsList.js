@@ -9,7 +9,7 @@ var {width} = Dimensions.get("window");
 const ItemsList = (props) =>{
     const {item} = props;
     return(
-        <TouchableOpacity style={{width:'50%'}}
+        <TouchableOpacity style={{width:'50%',}}
             onPress={()=>{
                 props.navigation.navigate('Item Details', {item: item})
             }}

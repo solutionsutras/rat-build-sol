@@ -14,6 +14,7 @@ import { connect } from 'react-redux';
 import * as actions from '../../Redux/Actions/cartActions';
 import Toast from 'react-native-toast-message';
 import EasyButton from '../../Shared/StyledComponents/EasyButton';
+import { TouchableOpacity } from 'react-native';
 
 var { width } = Dimensions.get('window');
 
@@ -26,7 +27,7 @@ const ItemsCard = (props) => {
     ratings,
     numOfReviews,
     isAvailable,
-    key
+    key,
   } = props;
 
   return (
@@ -37,51 +38,66 @@ const ItemsCard = (props) => {
         source={{ uri: image }}
       />
       <View style={styles.card} />
-      <Text style={styles.titleBold}>
-        {itemName.length > 25
-          ? itemName.substring(0, 25 - 3) + '...'
-          : itemName}
-      </Text>
 
-      <Text style={styles.title}>
-        Quality:{' '}
-        {quality.qualityName.length > 25
-          ? quality.qualityName.substring(0, 25 - 3) + '...'
-          : quality.qualityName}
-      </Text>
+      <View style={styles.titleView}>
+        <Text style={styles.titleBold}>
+          {itemName.length > 25
+            ? itemName.substring(0, 25 - 3) + '...'
+            : itemName}{' '}
+        </Text>
 
-      <View style={styles.priceContainer}>
-        {rates.map((r) => {
-          return (
-            <Text style={styles.price}>
-              {controls.currency}
-              {r.cost} / {r.unit.unitName.split('(')[0]}
-            </Text>
-          );
-        })}
+        <Text style={styles.title}>
+          (Type:{' '}
+          {quality.qualityName.length > 25
+            ? quality.qualityName.substring(0, 25 - 3) + '...'
+            : quality.qualityName}
+          )
+        </Text>
+      </View>
+
+      <View>
+        <View style={[styles.priceContainer]}>
+          {rates.map((r) => {
+            return (
+              <View style={{}}>
+                <Text style={[styles.price, styles.priceView]}>
+                  {controls.currency}
+                  {r.cost}/{r.unit.unitName.split('(')[0]}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
       </View>
       <View style={styles.ratingsContainer}>
         <Text style={styles.ratingsText}>Ratings: {ratings}</Text>
         <Text style={styles.ratingsText}>Reviews: {numOfReviews}</Text>
       </View>
-      {/* {(isAvailable === true) ? (
-                <View style={{ marginBottom: 60, }}>
-                    <EasyButton medium primary
-                        onPress={() => {
-                            props.addItemToCart(props),
-                                Toast.show({
-                                    topOffset: 60,
-                                    type: "success",
-                                    text1: `${itemName} added to cart`,
-                                    text2: "Go to your cart to complete your order"
-                                })
-                        }}
-                    >
-                        <Text style={{ color: 'white', }}>Add to Cart</Text>
-                    </EasyButton>
-                </View>
-            ) : <Text style={{ marginTop: 20 }}>Currently Unavailable</Text>
-            } */}
+
+      {isAvailable === true ? (
+        <View
+          style={{
+            marginVertical: 20,
+            alignSelf: 'flex-start',
+            borderWidth: 0.5,
+            borderColor: colors.grey3,
+            paddingHorizontal: 20,
+            paddingVertical: 5,
+          }}
+        >
+          <View>
+            <Text
+              style={{
+                color: colors.grey2,
+              }}
+            >
+              Select this item
+            </Text>
+          </View>
+        </View>
+      ) : (
+        <Text style={{ marginTop: 20 }}>Currently Unavailable</Text>
+      )}
     </View>
   );
 };
@@ -96,59 +112,72 @@ export default connect(null, mapDispatchToProps)(ItemsCard);
 
 const styles = StyleSheet.create({
   container: {
-    width: width / 2 - 20,
-    height: width / 1.3,
+    width: width / 2 - 10,
+    height: width / 1.25,
     padding: 10,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#CCC',
     marginTop: 15,
     marginBottom: 5,
-    marginLeft: 10,
+    marginLeft: 5,
     alignItems: 'center',
     elevation: 8,
     backgroundColor: '#EEE',
   },
   image: {
-    width: width / 2 - 20 - 10,
-    height: width / 2 - 20 - 30,
+    width: width / 2 - 30,
+    height: width / 2 - 50,
     backgroundColor: 'transparent',
     position: 'absolute',
     top: 5,
   },
   card: {
     marginBottom: 10,
-    height: width / 2 - 20 - 40,
-    width: width / 2 - 20 - 10,
+    height: width / 2 - 60,
+    width: width / 2 - 30,
     backgroundColor: 'transparent',
+    flexDirection: 'row',
+  },
+  titleView: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   title: {
-    fontSize: 14,
+    fontSize: 13,
     textAlign: 'center',
   },
   titleBold: {
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: 13,
     textAlign: 'center',
   },
   priceContainer: {
     marginTop: 10,
-    backgroundColor: colors.grey5,
     width: '100%',
-    paddingHorizontal: 30,
-    paddingVertical: 5,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    // paddingHorizontal: 5,
+    // paddingVertical: 5,
+  },
+  priceView: {
+    flexWrap: 'wrap',
   },
   price: {
-    fontSize: 13,
-    marginTop: 2,
+    backgroundColor: colors.grey5,
+    padding: 5,
+    fontSize: 12,
+    marginHorizontal: 1,
     color: colors.buttons,
+    borderWidth: 0.5,
+    borderColor: colors.grey4,
   },
   ratingsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
-    marginVertical: 5,
+    marginVertical: 10,
   },
   ratingsText: {
     fontSize: 12,

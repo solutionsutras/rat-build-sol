@@ -37,6 +37,7 @@ const AdminHome = (props) => {
   const [usersCount, setUsersCount] = useState(0);
   const [transactionsCount, setTransactionsCount] = useState(0);
   const [tripsCount, setTripsCount] = useState(0);
+  const [config, setConfig] = useState();
 
   useEffect(() => {
     AsyncStorage.getItem('jwt')
@@ -45,46 +46,76 @@ const AdminHome = (props) => {
       })
       .catch((error) => console.log(error));
 
-    const config = { headers: { Authorization: `Bearer ${token}` } };
+    return () => {
+      setToken();
+    };
+  }, []);
 
+  useEffect(() => {
+    setConfig({
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return () => {
+      setConfig();
+    };
+  }, [token]);
+
+  useEffect(() => {
     // Items Count
     axios
       .get(`${baseUrl}itemdetails/get/count`, config)
-      .then((res) => setItemsCount(res.data.itemCount))
-      .catch((error) => alert('Error in loading item count'));
+      .then((res) => setItemsCount(res.data.itemsCount))
+      .catch((error) => console.log('Error in loading item count: ', error));
 
     // Orders Count
     axios
       .get(`${baseUrl}orders/get/count`, config)
       .then((res) => setOrdersCount(res.data.ordersCount))
-      .catch((error) => alert('Error in loading orders count'));
+      .catch((error) => console.log('Error in loading orders count: ', error));
 
     // Vehicles Count
     axios
       .get(`${baseUrl}vehicles/get/count`, config)
       .then((res) => setVehiclesCount(res.data.vehiclesCount))
-      .catch((error) => alert('Error in loading vehicles count'));
-
-    // Users Count
-    axios
-      .get(`${baseUrl}users/get/count`, config)
-      .then((res) => setUsersCount(res.data.userCount))
-      .catch((error) => alert('Error in loading users count'));
+      .catch((error) =>
+        console.log('Error in loading vehicles count: ', error)
+      );
 
     // Transactions Count
     axios
       .get(`${baseUrl}transactions/get/count`, config)
       .then((res) => setTransactionsCount(res.data.transactionsCount))
-      .catch((error) => alert('Error in loading transactions count'));
+      .catch((error) => console.log('Error in loading transactions count'));
 
     // Trips Count
     axios
       .get(`${baseUrl}logistics/get/count`, config)
       .then((res) => setTripsCount(res.data.logisticsCount))
-      .catch((error) => alert('Error in loading logistics count'));
+      .catch((error) => console.log('Error in loading logistics count'));
+
+    // Users Count
+    axios
+      .get(`${baseUrl}users/get/count`, config)
+      .then((res) => setUsersCount(res.data.usersCount))
+      .catch((error) => console.log('Error in loading users count: ', error));
 
     return () => {
       setToken();
+      setItemsCount(0);
+      setOrdersCount(0);
+      setVehiclesCount(0);
+      setTransactionsCount(0);
+      setTripsCount(0);
+      setUsersCount(0);
+    };
+  }, [config]);
+
+  useEffect(() => {
+    return () => {
     };
   }, []);
 
@@ -183,7 +214,7 @@ const AdminHome = (props) => {
                   mr="2"
                   size="6"
                   color="white"
-                  as={<MaterialIcons name="commute" />}
+                  as={<FontAwesome5 name="truck-moving" />}
                 />
                 <Text style={styles.buttonText}>Logistics</Text>
               </EasyButton>
@@ -198,7 +229,7 @@ const AdminHome = (props) => {
                   mr="2"
                   size="6"
                   color="white"
-                  as={<MaterialIcons name="commute" />}
+                  as={<MaterialIcons name="group" />}
                 />
                 <Text style={styles.buttonText}>Users</Text>
               </EasyButton>
@@ -211,9 +242,9 @@ const AdminHome = (props) => {
               >
                 <Icon
                   mr="2"
-                  size="6"
+                  size="7"
                   color="white"
-                  as={<MaterialIcons name="commute" />}
+                  as={<MaterialCommunityIcons name="bank-transfer" />}
                 />
                 <Text style={styles.buttonText}>Transactions</Text>
               </EasyButton>
@@ -231,7 +262,7 @@ const AdminHome = (props) => {
                   mr="2"
                   size="6"
                   color="white"
-                  as={<MaterialIcons name="commute" />}
+                  as={<MaterialIcons name="category" />}
                 />
                 <Text style={styles.buttonText}>Categories</Text>
               </EasyButton>
@@ -246,7 +277,7 @@ const AdminHome = (props) => {
                   mr="2"
                   size="6"
                   color="white"
-                  as={<MaterialIcons name="commute" />}
+                  as={<MaterialCommunityIcons name="police-badge" />}
                 />
                 <Text style={styles.buttonText}>Qualities</Text>
               </EasyButton>
@@ -261,7 +292,9 @@ const AdminHome = (props) => {
                   mr="2"
                   size="6"
                   color="white"
-                  as={<MaterialIcons name="commute" />}
+                  as={
+                    <MaterialCommunityIcons name="order-bool-ascending-variant" />
+                  }
                 />
                 <Text style={styles.buttonText}>Order Status</Text>
               </EasyButton>
@@ -287,8 +320,8 @@ const styles = StyleSheet.create({
   },
   boxContainer: {
     margin: 5,
-    marginTop:0,
-    padding:10,
+    marginTop: 0,
+    padding: 10,
     borderColor: colors.grey3,
     borderWidth: 1,
   },
@@ -318,11 +351,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontStyle: 'italic',
     fontWeight: '500',
-    color:colors.grey2,
+    color: colors.grey2,
   },
-buttonsBox:{
-  margin:5,
-},
+  buttonsBox: {
+    margin: 5,
+  },
   buttonsContainer: {
     marginTop: 0,
     flexDirection: 'row',

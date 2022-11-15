@@ -1,6 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Users from '../../Screens/Admin/ManageUsers/Users';
+import UserDetails from '../../Screens/Admin/ManageUsers/UserDetails';
 
 const Stack = createStackNavigator();
 
@@ -25,6 +26,13 @@ function AdminUsersStack() {
         component={Users}
         options={{
           title: 'Users',
+        }}
+      />
+      <Stack.Screen
+        name="UserDetails"
+        component={UserDetails}
+        options={{
+          title: 'User details',
         }}
       />
     </Stack.Navigator>
